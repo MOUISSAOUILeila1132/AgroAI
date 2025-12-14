@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}À propos - AgriClassifier{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="text-center mb-4">À propos d'AgriClassifier</h1>
+            
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h3><i class="fas fa-info-circle text-primary me-2"></i>Notre Mission</h3>
+                    <p>
+                        AgriClassifier utilise l'intelligence artificielle pour aider les agriculteurs 
+                        et les jardiniers à identifier rapidement les parasites et maladies des plantes.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h3><i class="fas fa-cogs text-primary me-2"></i>Technologie</h3>
+                    <p>
+                        Notre système utilise un modèle MobileNetV2 entraîné sur un large ensemble de données 
+                        d'images de plantes saines et malades pour fournir des prédictions précises.
+                    </p>
+                    <ul>
+                        <li><strong>Modèle:</strong> MobileNetV2</li>
+                        <li><strong>Précision:</strong> Classification de plus de 60 catégories</li>
+                        <li><strong>Temps de réponse:</strong> Quelques secondes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3><i class="fas fa-exclamation-triangle text-warning me-2"></i>Disclaimer</h3>
+                    <p>
+                        Cet outil fournit des suggestions basées sur l'analyse d'image par IA. 
+                        Pour un diagnostic définitif et un traitement approprié, consultez toujours 
+                        un expert agricole certifié.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

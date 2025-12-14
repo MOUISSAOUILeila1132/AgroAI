@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold">Classificateur de Parasites Agricoles</h1>
+                <p class="lead">
+                    Identifiez automatiquement les parasites et maladies des plantes grâce à l'intelligence artificielle.
+                    Téléchargez une image et obtenez une analyse instantanée.
+                </p>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-seedling display-1"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Upload Card -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-upload me-2"></i>Télécharger une image</h4>
+                </div>
+                <div class="card-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="fileInput" class="form-label">Sélectionnez une image de plante</label>
+                            <div id="uploadArea" class="upload-area">
+                                <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-muted"></i>
+                                <h5>Glissez-déposez votre image ici</h5>
+                                <p class="text-muted">ou cliquez pour sélectionner</p>
+                                <p class="small text-muted">Formats supportés: JPG, PNG, GIF, BMP (Max 16MB)</p>
+                                <input type="file" id="fileInput" name="file" accept="image/*" class="d-none">
+                            </div>
+                            <div id="fileInfo" class="mt-2" style="display: none;"></div>
+                        </div>
+                        <button type="submit" id="predictBtn" class="btn btn-success btn-lg w-100" disabled>
+                            <i class="fas fa-search me-2"></i>Analyser l'image
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Card -->
+            <div id="resultCard" class="card shadow mt-4 result-card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Résultats de l'analyse</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="imagePreview" class="text-center mb-3"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 id="predictionResult" class="text-success"></h5>
+                            <p class="mb-2">Confiance: <span id="confidenceText" class="fw-bold"></span></p>
+                            <div class="confidence-bar mb-3">
+                                <div id="confidenceFill" class="confidence-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Conseil:</strong> 
+                                    <span id="adviceText">Les résultats sont basés sur l'analyse d'image par IA.</span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Analyse en cours...</span>
+                </div>
+                <p class="mt-2">Analyse de l'image en cours...</p>
+            </div>
+
+            <!-- Error Alert -->
+            <div id="errorAlert" class="alert alert-danger mt-4" style="display: none;">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span id="errorMessage"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Info -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list me-2"></i>Catégories détectables</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for category in categories %}
+                        <div class="col-md-3 col-sm-4 col-6 mb-2">
+                            <span class="badge bg-secondary category-badge">{{ category }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInfo = document.getElementById('fileInfo');
+    const predictBtn = document.getElementById('predictBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const resultCard = document.getElementById('resultCard');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const errorAlert = document.getElementById('errorAlert');
+    const imagePreview = document.getElementById('imagePreview');
+    const predictionResult = document.getElementById('predictionResult');
+    const confidenceText = document.getElementById('confidenceText');
+    const confidenceFill = document.getElementById('confidenceFill');
+    const adviceText = document.getElementById('adviceText');
+
+    // Gestion du drag and drop
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            handleFileSelect();
+        }
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect() {
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            fileInfo.innerHTML = `
+                <div class="alert alert-info d-flex align-items-center">
+                    <i class="fas fa-file-image me-2"></i>
+                    <div>
+                        <strong>${file.name}</strong><br>
+                        <small>${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                    </div>
+                </div>
+            `;
+            fileInfo.style.display = 'block';
+            predictBtn.disabled = false;
+
+            // Aperçu de l'image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded" style="max-height: 200px;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Soumission du formulaire
+    uploadForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!fileInput.files.length) {
+            showError('Veuillez sélectionner une image');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        // Afficher le chargement
+        loadingSpinner.style.display = 'block';
+        resultCard.style.display = 'none';
+        errorAlert.style.display = 'none';
+        predictBtn.disabled = true;
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de la prédiction');
+            }
+
+            // Afficher les résultats
+            displayResults(data);
+            
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            loadingSpinner.style.display = 'none';
+            predictBtn.disabled = false;
+        }
+    });
+
+    function displayResults(data) {
+        predictionResult.textContent = `Résultat: ${data.predicted_class}`;
+        confidenceText.textContent = data.confidence_percentage;
+        confidenceFill.style.width = data.confidence_percentage;
+        
+        // Mettre à jour le conseil
+        updateAdvice(data.predicted_class, data.confidence);
+        
+        resultCard.style.display = 'block';
+        resultCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateAdvice(predictedClass, confidence) {
+        let advice = '';
+        
+        if (predictedClass.includes('healthy')) {
+            advice = 'La plante semble en bonne santé. Continuez les bonnes pratiques agricoles.';
+        } else if (predictedClass.includes('Blight') || predictedClass.includes('spot')) {
+            advice = 'Maladie fongique détectée. Consultez un expert pour un traitement approprié.';
+        } else if (confidence < 0.7) {
+            advice = 'Faible confiance. Prenez une photo plus claire et réessayez.';
+        } else {
+            advice = 'Parasite ou maladie détecté. Isolez la plante et consultez un expert.';
+        }
+        
+        adviceText.textContent = advice;
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorAlert.style.display = 'block';
+        errorAlert.scrollIntoView({ behavior: 'smooth' });
+    }
+});
+</script>
+{% endblock %}
