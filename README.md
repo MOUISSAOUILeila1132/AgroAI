@@ -1,4 +1,4 @@
-# 🌿 Plant Disease & Pest Detection System
+# 🌿 AgroAI
 
 This project is an intelligent agricultural diagnostic solution that combines the power of **MobileNetV2** for classification and **YOLOv2** for object detection. It identifies plant diseases and insect pests through a modern Graphical User Interface (GUI).
 
