@@ -5,7 +5,7 @@ This project is an intelligent agricultural diagnostic solution that combines th
 ## 🚀 Features
 - **Accurate Classification**: Uses MobileNetV2 to identify over 58 categories of plants and insects.
 - **Object Detection**: Integration of YOLOv2 to localize affected areas on leaves.
-- **User Interface (GUI)**: Developed with Tkinter for a professional and user-friendly experience.
+- **User Interface **: Developed with Flask.
 - **Real-Time Analysis**: Supports live camera feeds via OpenCV.
 - **Automated Reporting**: Generates a detailed analysis report including confidence levels and agricultural recommendations.
 
